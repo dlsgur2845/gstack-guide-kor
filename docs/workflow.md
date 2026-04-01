@@ -27,12 +27,12 @@ Think → Plan → Design → Build → Review → Test → Ship → Monitor →
 | | `/design-shotgun` | 여러 AI 디자인 변형 생성 및 비교 |
 | | `/design-html` | 승인된 목업을 프로덕션 HTML/CSS로 변환 |
 | **Build** | 직접 구현 | 플랜 모드 종료 후 코드 작성 |
-| **Review** | `/review` | CI 통과하지만 프로덕션에서 터지는 버그 탐지 |
-| | `/codex` | 독립적 세컨드 오피니언 |
+| **Review** | `/review` | 7종 병렬 전문 리뷰어 + 적대적 분석으로 버그 탐지 |
+| | `/codex` | 독립적 세컨드 오피니언 (자동 실행됨) |
 | **Test** | `/qa` | 실제 브라우저로 테스트 → 수정 → 재검증 |
 | | `/benchmark` | 성능 회귀 감지 |
 | | `/cso` | 보안 감사 |
-| **Ship** | `/ship` | 테스트 → PR 생성 |
+| **Ship** | `/ship` | 테스트 → 스코프 드리프트 감지 → PR 생성 (멱등성) |
 | | `/land-and-deploy` | PR 머지 → 배포 → 헬스 체크 |
 | **Monitor** | `/canary` | 배포 후 실시간 모니터링 |
 | **Reflect** | `/retro` | 주간 회고, 기여자별 분석 |
@@ -70,8 +70,10 @@ Claude: [11개 파일에 2,400줄 작성. ~8분.]
 
 # 6. 코드 리뷰
 You:    /review
-Claude: [AUTO-FIXED] 2개 이슈
+Claude: [7 specialists dispatched in parallel]
+        [AUTO-FIXED] 2개 이슈
         [ASK] 레이스 컨디션 → 승인 후 수정
+        PR Quality Score: 9.0/10
 
 # 7. QA 테스트
 You:    /qa https://staging.myapp.com
@@ -83,7 +85,9 @@ Claude: [OWASP Top 10 + STRIDE 위협 모델링 수행]
 
 # 9. 배포
 You:    /ship
-Claude: Tests: 42 → 51 (+9 신규). PR: github.com/you/app/pull/42
+Claude: Tests: 42 → 51 (+9 신규).
+        Scope drift: clean (계획과 구현 일치)
+        PR: github.com/you/app/pull/42
 
 # 10. 프로덕션 랜딩
 You:    /land-and-deploy

@@ -89,7 +89,8 @@ Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-desig
 /design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy,
 /canary, /benchmark, /browse, /connect-chrome, /qa, /qa-only, /design-review,
 /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /codex,
-/cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /learn, /gstack-upgrade.
+/cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /learn, /gstack-upgrade,
+/checkpoint, /health.
 ```
 
 ### 자동 업그레이드

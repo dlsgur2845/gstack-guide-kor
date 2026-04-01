@@ -11,7 +11,7 @@
 - **GitHub**: [github.com/garrytan/gstack](https://github.com/garrytan/gstack)
 - **공식 사이트**: [gstacks.org](https://gstacks.org)
 - **라이선스**: MIT (무료, 영구 사용 가능)
-- **버전**: v0.14.5.0 (2026년 3월 기준)
+- **버전**: v0.15.1.0 (2026년 4월 기준)
 - **GitHub Stars**: ~45,700+
 
 ---
@@ -46,7 +46,8 @@ Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-desig
 /design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy,
 /canary, /benchmark, /browse, /connect-chrome, /qa, /qa-only, /design-review,
 /setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /codex,
-/cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /learn, /gstack-upgrade.
+/cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /learn, /gstack-upgrade,
+/checkpoint, /health.
 ```
 
 ### Step 2: 팀 프로젝트에 추가 (선택)
@@ -86,7 +87,8 @@ cd ~/gstack && ./setup --host auto
 | 문서 | 내용 |
 |---|---|
 | **[스프린트 워크플로우](docs/workflow.md)** | gstack 스프린트 프로세스, 전체 워크플로우 예시, 병렬 스프린트 |
-| **[명령어 레퍼런스](docs/commands.md)** | 31개 전체 명령어의 상세 설명과 사용 예시 |
+| **[명령어 레퍼런스](docs/commands.md)** | 33개 전체 명령어의 상세 설명과 사용 예시 |
+| **[릴리스 노트](docs/release-notes.md)** | v0.14.0.0 ~ v0.15.1.0 버전별 변경 이력 |
 | **[트러블슈팅 & FAQ](docs/troubleshooting.md)** | 문제 해결, 프라이버시, 텔레메트리, 팁 |
 
 ---
@@ -102,7 +104,7 @@ cd ~/gstack && ./setup --host auto
 | | `/design-consultation` | 디자인 파트너 | 경쟁 리서치 후 디자인 시스템 구축, DESIGN.md 자동 생성 |
 | | `/autoplan` | 자동 리뷰 파이프라인 | CEO → 디자인 → 엔지니어링 리뷰를 한 명령으로 자동 수행 |
 | **디자인** | `/design-shotgun` | 디자인 탐색 | 여러 AI 디자인 변형을 생성하고 비교 보드에서 피드백 수집 |
-| | `/design-html` | 디자인 → 코드 | 승인된 AI 목업을 프로덕션 품질의 HTML/CSS로 변환 |
+| | `/design-html` | 디자인 → 코드 | 플랜, 설명, PNG 등 어떤 출발점에서든 프로덕션 HTML/CSS 생성 |
 | **리뷰** | `/review` | 스태프 엔지니어 | 7종 병렬 전문 리뷰어로 프로덕션 버그 탐지, PR 품질 점수 산출 |
 | | `/investigate` | 디버거 | 체계적 근본 원인 디버깅, 3회 실패 시 자동 중단 |
 | | `/codex` | 세컨드 오피니언 | OpenAI Codex CLI를 통한 독립적 코드 리뷰, 3가지 모드 |
@@ -124,9 +126,11 @@ cd ~/gstack && ./setup --host auto
 | | `/freeze` | 편집 잠금 | 파일 편집을 특정 디렉토리로 제한 |
 | | `/guard` | 풀 세이프티 | `/careful` + `/freeze` 동시 활성화, 최대 안전 모드 |
 | | `/unfreeze` | 잠금 해제 | `/freeze` 편집 제한 해제 |
+| **세션** | `/checkpoint` | 상태 저장 | 작업 상태 스냅샷 저장/복구, 브랜치 간 핸드오프 지원 |
+| | `/health` | 코드 품질 | tsc·biome·knip·테스트 래핑, 복합 0~10 점수, 추세 추적 |
 | **유틸** | `/learn` | 학습 관리 | 프로젝트별 학습 내용 리뷰·검색·정리·내보내기 |
 | | `/gstack-upgrade` | 셀프 업데이터 | 최신 버전으로 업그레이드, 글로벌/벤더 설치 자동 동기화 |
 
 ---
 
-*gstack v0.14.5.0 기준 · 마지막 업데이트: 2026년 3월 31일*
+*gstack v0.15.1.0 기준 · 마지막 업데이트: 2026년 4월 1일*

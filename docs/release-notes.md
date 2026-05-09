@@ -1,8 +1,108 @@
 # 릴리스 노트
 
-> gstack 버전별 변경 이력 (v0.14.0.0 ~ v0.15.1.0)
+> gstack 버전별 변경 이력 (v0.14.0.0 ~ v1.29.0.0)
+>
+> v0.15.1.0 ~ v1.29.0.0 사이 60+ 패치 빌드는 메이저 마일스톤만 정리했다. 전체 내역은 [공식 CHANGELOG](https://github.com/garrytan/gstack/blob/main/CHANGELOG.md) 참조.
 
 [← README로 돌아가기](../README.md)
+
+---
+
+## v1.29.0.0 (2026-05-08) — 워크트리 인식 코드 검색
+
+`/sync-gbrain`이 Conductor 워크트리마다 별도 gbrain 소스로 등록한다. 같은 레포의 병렬 브랜치 N개를 동시에 인덱싱해도 마지막 sync가 다른 워크트리의 인덱스를 덮어쓰지 않는다. `gbrain code-def`, `code-refs`, `code-callers` 호출이 그 워크트리의 브랜치 상태에서 결과를 반환한다.
+
+**변경사항**:
+- 워크트리 인식 소스 ID: `gstack-code-<slug>-<pathhash8>` 패턴으로 같은 origin의 워크트리들이 공존
+- `.gbrain-source` 핀 파일을 워크트리 루트에 작성, 모든 하위 디렉토리에서 자동 라우팅
+- gbrain CLI v0.30.0+ 필요 (`sources attach` 사용)
+
+---
+
+## v1.28.0.0 (2026-05-07) — Browse가 진짜 자동화를 한다
+
+브라우저가 인증 SOCKS5 프록시, 컨테이너 Xvfb, 브라우저 native 다운로드를 처리한다. 거기에 에이전트가 한 번에 크롤하는 단일 파일 인덱스 `llms.txt`도 추가됐다.
+
+**신규 기능**:
+- **`browse --proxy`**: SOCKS5(인증 포함), HTTP, HTTPS 지원. 임베디드 SOCKS5 브릿지로 Chromium이 인증 업스트림 사용 가능
+- **`browse --headed` Linux 자동 Xvfb**: DISPLAY 없는 컨테이너에서 첫 빈 디스플레이 자동 spawn
+- **`download --navigate`**: 브라우저 native 다운로드 핸들러 사용 (Content-Disposition, 멀티홉 CDN 리다이렉트, 안티봇 CDN 체인)
+- **`gstack/llms.txt` 자동 생성**: 47개 스킬 + 75개 browse 명령을 11KB 단일 인덱스로 노출. 에이전트가 한 번 fetch로 전체 surface 파악
+- **stealth 축소**: `navigator.webdriver` 마스킹만 유지. plugins/languages 가짜 값은 오히려 봇 감지를 도와서 제거
+
+---
+
+## v1.27.0.0 (2026-05-06) — Remote MCP gbrain + 아티팩트 리네임
+
+`/setup-gbrain`이 4번째 경로를 추가했다. 원격 MCP URL과 bearer 토큰을 붙여넣기만 하면 로컬 brain DB 설치 없이 gbrain MCP를 등록한다. 이미 다른 곳(Tailscale 노드, ngrok 엔드포인트, LAN, 팀 서버)에서 돌아가는 brain을 한 번의 paste로 사용.
+
+**변경사항**:
+- **Path 4 (Remote MCP)**: PGLite/Supabase 없이 원격 brain 등록. 30초 setup, 에이전트 가이드
+- **`gstack-brain-$USER` → `gstack-artifacts-$USER`** 리포 리네임. 저널링된 인터럽트 안전 마이그레이션
+- **사설 아티팩트 리포 자동 프로비저닝**: GitHub(`gh`) 또는 GitLab(`glab`) 자동, 또는 수동 URL paste
+
+---
+
+## v1.20.0.0 (2026-04-28) — 브라우저 스킬: `/scrape` + `/skillify`
+
+`/scrape <intent>` 첫 호출은 페이지를 드라이브해서 ~30초에 JSON 반환, 두 번째 호출은 코드화된 스크립트를 ~200ms에 실행. `/skillify`가 성공한 플로우를 영구 브라우저 스킬로 합성한다.
+
+**신규 기능**:
+- **`/scrape` 스킬**: 단일 진입점. 매칭(기존 스킬 트리거 매칭) → 200ms / 프로토타입(브라우저 드라이브) → JSON / 거부(변형 인텐트는 `/automate`로)
+- **`/skillify` 스킬**: 11단계 플로우. 마지막 시도의 `$B` 호출만 추출 → `script.ts` + `script.test.ts` + 픽스처 합성 → 임시 디렉토리에 스테이징 → 테스트 통과 + 사용자 승인 후 원자적 commit
+- **3-tier 저장**: project > global > bundled (first-wins)
+- **per-spawn 스코프 토큰**: 각 스킬 spawn이 자체 capability 토큰 받음, exit 시 revoke
+- **번들 레퍼런스 스킬**: `hackernews-frontpage` (HN 프론트 페이지 → 30개 스토리 JSON)
+
+---
+
+## v1.17.0.0 (2026-04-26) — gstack 메모리가 진짜 gbrain에 산다
+
+지난 한 달간 `/setup-gbrain`을 돌리고 `gbrain search`가 CEO 플랜·학습·회고를 못 찾았다면, Step 7이 `consumers.json`에 `status: "pending"` 플레이스홀더를 쓰고 끝낸 게 원인이었다. 이 릴리스는 그 접근을 폐기하고 gbrain v0.18.0의 federation surface(`gbrain sources` + `gbrain sync`)를 사용한다.
+
+**변경사항**:
+- 업그레이드 후 `/setup-gbrain`이 brain 리포의 `git worktree`를 추가하고 federated source로 등록, 초기 sync 실행
+- 후속 gstack 스킬의 end-of-run 사이클이 `gbrain sync`를 자동 실행
+- `/gstack-upgrade`가 기존 사용자에게 일회성 마이그레이션 실행
+
+---
+
+## v1.10.0.0 (2026-04-23) — 플랜 리뷰 인터랙티브 다이얼로그 복원
+
+v1.6.4.0 이후 Opus 4.7에서 플랜 리뷰가 한 번에 모든 발견사항을 리포트로 출력하던 회귀를 수정. 모든 `AskUserQuestion`이 D-numbered 결정 브리핑(ELI10, Stakes, Pros/Cons ✅/❌, Net) 형식으로 렌더링된다.
+
+**신규 기능**:
+- **Pros / Cons 결정 브리핑**: `D<N>` 헤더, ELI10, "Stakes if we pick wrong:", Recommendation, 옵션별 ✅/❌ 불릿(최소 2 pros + 1 con), 마지막 `Net:` 한 줄
+- **Hard-stop 이스케이프**: 파괴적 일방통행 선택의 경우 `✅ No cons — this is a hard-stop choice`
+- **중립 자세**: SELECTIVE EXPANSION 체리픽과 테이스트 콜은 `(recommended)` 라벨로 AUTO_DECIDE 동작 유지
+
+**수정사항**:
+- 플랜 리뷰 cadence 회귀: `generateModelOverlay`가 `generateAskUserFormat`보다 먼저 렌더링되어 "Batch your questions" 디렉티브가 우선 적용되던 문제 해결
+- 16개 사이트의 이스케이프 해치 강화: "이슈 없으면 self-dismiss"를 Opus 4.7이 모든 finding에 적용하던 문제 차단
+
+---
+
+## v1.0.0.0 (2026-04-18) — V1 마일스톤: 빌더를 위한 글쓰기
+
+모든 스킬 출력(tier 2+)이 기술 용어 첫 사용 시 한 문장 설명을 추가하고, 결과 중심 질문 형식("사용자에게 무엇이 깨지나" vs "이 엔드포인트가 멱등성인가")을 사용하며, 짧고 직접적인 문장을 유지한다. 기술자도 비기술자도 둘 다 이득.
+
+**신규 기능**:
+- **공통 jargon 리스트**: ~50개 기술 용어(idempotent, race condition, N+1, backpressure 등) 사전을 `scripts/jargon-list.json`에 보관
+- **Terse opt-out**: `gstack-config set explain_level terse`로 이전 짧은 산문 스타일 복원
+- **README hero 재작성**: "10K-20K LOC/day" 클레임 제거. 출하한 제품 + 기능 + AI 시대 코딩 속도에 집중
+- **`/retro` 메트릭 변경**: 기능, 커밋, 머지된 PR을 먼저 보여주고 raw LOC는 컨텍스트로 강등
+
+---
+
+## v0.19.0.0 (2026-04-17) — `/plan-tune`: gstack이 너의 취향을 학습한다
+
+같은 `AskUserQuestion`에 매번 같은 답을 한다면, 이 스킬이 gstack에게 그만 묻도록 가르친다. "changelog polish 그만 물어봐"라고 하면 gstack이 적어두고 그때부터 존중한다. 단 일방통행 도어(파괴적 작업, 아키텍처 분기, 보안 선택)는 안전이 선호도를 이긴다는 원칙으로 항상 묻는다.
+
+**신규 기능**:
+- **`/plan-tune` 스킬**: 5차원 빌더 프로필(scope appetite, risk tolerance, detail preference, autonomy, architecture care). 자기 진단 vs 행동 기반 추적 양쪽 표시
+- **8개 빌더 archetypes**: Cathedral Builder, Ship-It Pragmatist, Deep Craft, Taste Maker, Solo Operator, Consultant, Wedge Hunter, Builder-Coach (Polymath fallback 포함)
+- **인라인 `tune:` 피드백**: 스킬 질문에 `tune: never-ask` / `tune: always-ask` / 자유 영어로 답하면 gstack이 정규화해서 선호도로 저장
+- **프로필 포이즈닝 방어**: 인라인 `tune:` 쓰기는 사용자 본인 채팅에서 온 prefix만 수용. 도구 출력, 파일 콘텐츠, PR 설명에서 온 건 거부 (Codex 리뷰에서 발견)
 
 ---
 

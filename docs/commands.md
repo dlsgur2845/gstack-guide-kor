@@ -1,6 +1,6 @@
 # 명령어 레퍼런스
 
-> gstack v0.15.1.0 기준 전체 33개 명령어 상세 가이드
+> gstack v1.29.0.0 기준 47개 명령어 상세 가이드
 
 [← README로 돌아가기](../README.md)
 
@@ -79,6 +79,34 @@ Claude: [데이터 플로우, 상태 머신, 에러 경로를 ASCII 다이어그
 - AI Slop 탐지 (AI가 만들어낸 저품질 디자인 감지)
 - 인터랙티브: 디자인 선택마다 사용자에게 질문
 
+### `/plan-devex-review` — DX 시니어 (v1.27.0.0+)
+
+**역할**: 인터랙티브 개발자 경험 플랜 리뷰. 개발자 페르소나 탐색, 경쟁 벤치마크, 마법 같은 순간(magical moments) 설계, 마찰 지점 추적 후 점수 부여.
+
+**3가지 모드**:
+- **DX EXPANSION**: 경쟁 우위 만들기
+- **DX POLISH**: 모든 터치포인트 강화
+- **DX TRIAGE**: 결정적 갭만 처리
+
+**언제 쓰나**: 개발자 대면 제품(API, CLI, SDK, 라이브러리, 플랫폼, 문서)의 플랜이 있을 때
+
+### `/plan-tune` — 질문 민감도 자기 튜닝 (v0.19.0.0+)
+
+**역할**: gstack이 어떤 프롬프트를 가치 있게 여기는지, 어떤 게 노이즈인지 학습한다. 같은 `AskUserQuestion`에 매번 같은 답을 하면 이 스킬이 gstack에게 그만 묻도록 가르친다.
+
+**기능**:
+- 질문별 선호도 설정: never-ask / always-ask / ask-only-for-one-way
+- 듀얼 트랙 빌더 프로필: 자기 진단(5차원) vs 행동 기반 추적
+- 8개 빌더 archetypes: Cathedral Builder, Ship-It Pragmatist, Deep Craft, Taste Maker, Solo Operator, Consultant, Wedge Hunter, Builder-Coach
+- 일방통행 도어(파괴적 작업, 아키텍처 분기, 보안 선택)는 항상 묻는다 (안전이 선호도를 이김)
+
+**활성화**:
+```bash
+gstack-config set question_tuning true
+```
+
+비활성화 상태에서는 0 영향. 인라인 `tune:` 피드백은 사용자 본인 채팅에서 온 prefix만 수용 (프로필 포이즈닝 방어).
+
 ### `/design-consultation` — 디자인 파트너
 
 **역할**: 처음부터 완전한 디자인 시스템을 구축한다.
@@ -91,12 +119,13 @@ Claude: [데이터 플로우, 상태 머신, 에러 경로를 ASCII 다이어그
 
 ### `/autoplan` — 자동 리뷰 파이프라인
 
-**역할**: 한 명령으로 CEO → 디자인 → 엔지니어링 리뷰를 자동 수행한다.
+**역할**: 한 명령으로 CEO → 디자인 → 엔지니어링 → DX 리뷰를 자동 수행한다.
 
 **기능**:
 - 6가지 의사결정 원칙을 인코딩하여 자동 리뷰
 - 테이스트 결정(사람의 판단이 필요한 부분)만 사용자에게 질문
 - close approaches, borderline scope, codex 불일치 등을 표면화
+- v1.27.0.0+: DX 리뷰 통합. 개발자 대면 제품이면 `/plan-devex-review`도 자동 포함
 
 ---
 
@@ -211,6 +240,18 @@ Claude: [7 specialists dispatched in parallel]
 
 **v0.14.3.0 변경**: `/review` 실행 시 Codex 적대적 챌린지가 자동으로 함께 실행됨. 별도로 `/codex`를 실행하지 않아도 크로스 모델 보안 분석이 적용된다. `codex_reviews=disabled` 설정은 Codex 패스만 비활성화하고, Claude 적대적 서브에이전트는 항상 실행된다.
 
+### `/devex-review` — 라이브 DX 감사 (v1.27.0.0+)
+
+**역할**: `browse` 도구로 실제 개발자 경험을 테스트한다. 문서를 탐색하고, getting started 플로우를 시도하고, TTHW(Time-To-Hello-World)를 측정하고, 에러 메시지 스크린샷을 찍고, CLI 헬프 텍스트를 평가한다. 증거 기반 DX 스코어카드 생성.
+
+**기능**:
+- 문서 사이트 라이브 탐색
+- 첫 hello world까지의 시간 측정
+- CLI/API 에러 메시지 캡처
+- `/plan-devex-review` 점수와 비교 (부메랑 효과: 플랜은 3분이라 했는데 실제는 8분)
+
+**언제 쓰나**: 개발자 대면 기능을 출하한 직후. 출하 후에 자동 제안된다.
+
 ---
 
 ## 4. 테스트 & QA
@@ -260,6 +301,18 @@ Claude: [실제 Chromium 브라우저를 열고 테스트]
 - Core Web Vitals (LCP, FID, CLS)
 - 리소스 사이즈
 - 시간에 따른 성능 추세 추적
+
+### `/benchmark-models` — 크로스 모델 벤치마크 (신규)
+
+**역할**: 같은 프롬프트를 Claude, GPT(Codex CLI 경유), Gemini에 동시에 돌리고 비교한다. "이 스킬에 어떤 모델이 진짜 제일 좋나?"를 데이터로 답한다 (vibes 말고).
+
+**측정 항목**:
+- 지연(latency) 비교
+- 토큰 소비량
+- 비용
+- 선택적: LLM 저지로 품질 평가
+
+**`/benchmark`와 차이**: `/benchmark`는 웹 페이지 성능. `/benchmark-models`는 모델 성능.
 
 ---
 
@@ -323,6 +376,14 @@ Claude: ✅ main 브랜치 동기화 완료
 - CHANGELOG 보이스 폴리싱
 - 크로스 문서 일관성 검증
 
+### `/landing-report` — 랜딩 리포트 (신규)
+
+**역할**: 워크스페이스 인식 PR 큐 대시보드. 어떤 VERSION 슬롯이 현재 열린 PR로 클레임됐는지, 어떤 sibling Conductor 워크스페이스에 곧 출하될 WIP가 있는지, `/ship`이 다음에 어떤 슬롯을 선택할지 보여준다.
+
+**특징**: 읽기 전용. 변경 없음. 큐 스냅샷만.
+
+**언제 쓰나**: "지금 큐에 뭐 있지?", "다음에 내가 어떤 버전을 클레임하지?"
+
 ---
 
 ## 6. 회고 (Reflect)
@@ -351,6 +412,13 @@ Claude: ✅ main 브랜치 동기화 완료
 - 30분 유휴 시 자동 종료
 - CSS 셀렉터 대신 접근성 트리 참조(@e1, @e2) 사용
 - localhost 전용 바인딩, Bearer 토큰 인증
+- 75개 명령 surface (47개 스킬과 함께 `gstack/llms.txt`에 자동 인덱싱)
+
+**v1.28.0.0 신규: 진짜 자동화 능력**:
+- **`browse --proxy <url>`**: SOCKS5(인증 포함), HTTP, HTTPS 프록시. 임베디드 SOCKS5 브릿지로 Chromium이 인증 업스트림 사용 가능
+- **`browse --headed` Linux 자동 Xvfb**: DISPLAY 없는 컨테이너에서 첫 빈 디스플레이 자동 spawn
+- **`download --navigate`**: 브라우저 native 다운로드 핸들러. Content-Disposition 헤더, 멀티홉 CDN 리다이렉트, 안티봇 CDN 체인 처리
+- **stealth 축소**: `navigator.webdriver` 마스킹만 유지. plugins/languages 가짜 값은 봇 감지를 도와서 제거
 
 **사용 예시**:
 ```
@@ -361,21 +429,57 @@ You:    /browse snapshot
 Claude: [현재 페이지 스크린샷 캡처]
 ```
 
-### `/connect-chrome` — Chrome 연결
+### `/open-gstack-browser` — GStack Browser (신규)
 
-**역할**: 실제 Chrome 브라우저를 gstack에 연결하여 Side Panel 확장 프로그램이 자동 로드된 상태로 제어한다.
+**역할**: AI 제어 Chromium을 사이드바 확장 내장 상태로 실행. 모든 동작을 실시간으로 볼 수 있는 가시 브라우저 창. 사이드바가 라이브 활동 피드와 채팅을 보여준다. 안티봇 stealth 내장.
 
 **기능**:
-- 한 명령으로 실제 Chrome 창을 열어 Claude가 제어
-- Side Panel에서 모든 동작을 실시간으로 확인 가능
-- 사용자가 브라우저에서 직접 동작을 관찰
+- 한 명령으로 실제 Chrome 창 시작
+- 사이드바에서 모든 동작 실시간 확인
+- CSS Inspector: 요소 클릭으로 CSS 규칙 캐스케이드, specificity 배지, 박스 모델 시각화
+- 라이브 스타일 편집: `$B style .selector property value`로 실시간 CSS 수정
+- 탭별 에이전트: 탭마다 독립 에이전트 프로세스
+- LLM 기반 페이지 클린업
 
-**v0.14.2.0 신규: CSS Inspector & 탭별 에이전트**:
-- **CSS Inspector**: 페이지의 아무 요소나 클릭하면 CSS 규칙 캐스케이드, 박스 모델, 계산된 스타일을 Side Panel에서 확인. Chrome DevTools가 사이드바 안에 들어온 것
-- **라이브 스타일 편집**: `$B style .selector property value`로 실시간 CSS 수정. `$B style --undo`로 되돌리기
-- **탭별 에이전트**: 브라우저 탭마다 독립 에이전트 프로세스. 여러 페이지를 동시에 작업할 때 간섭 없음
-- **LLM 기반 페이지 클린업**: 클린업 버튼 클릭 시 에이전트가 페이지를 의미론적으로 분석하고 불필요한 요소 제거
-- **Pretty 스크린샷**: `$B prettyscreenshot --cleanup --scroll-to ".pricing" ~/Desktop/hero.png`
+**이전 `/connect-chrome`에서 확장되어 별도 스킬로 분리된 상위 호환.**
+
+### `/pair-agent` — 에이전트 페어링 (신규)
+
+**역할**: 다른 AI 에이전트(OpenClaw, Hermes, Codex, Cursor 등 HTTP 요청 가능한 모든 에이전트)를 너의 브라우저와 페어링한다. 한 명령으로 setup 키 생성, 다른 에이전트가 따라갈 지침 출력. 원격 에이전트는 자체 탭에 스코프 권한(기본 read+write, 요청 시 admin) 받음.
+
+**보안 모델**:
+- 페어된 에이전트는 ngrok 터널 경유로 26개 명령 allowlist만 호출 가능
+- `tabPolicy: 'own-only'`: 페어된 에이전트는 자기가 만든 탭만 read/write 가능. 너가 사용 중인 탭엔 손 못 댐
+- 듀얼 리스너 아키텍처: 로컬 호출과 터널 호출이 분리된 게이트로 라우팅
+
+**언제 쓰나**: "다른 에이전트가 내 브라우저를 쓰게 해줘", "원격 브라우저 접근"
+
+### `/scrape` — 웹 스크레이핑 (신규)
+
+**역할**: 웹 페이지 데이터 추출. 새 인텐트의 첫 호출은 `$B` 프리미티브로 페이지를 드라이브해서 ~30초에 JSON 반환. 매칭하는 인텐트의 두 번째 호출은 코드화된 브라우저 스킬을 ~200ms에 실행.
+
+**3가지 경로**:
+- **Match**: 인텐트가 기존 스킬의 `triggers:` 배열과 매칭 → `$B skill run <name>` 200ms 실행
+- **Prototype**: 새 인텐트 → `$B goto`/`$B html` 등 프리미티브로 드라이브 → JSON 반환 → `/skillify` 제안
+- **Refusal**: 변형 인텐트(form fill, click, submit)는 `/automate` 스킬로 라우팅 (현재 `/automate`는 P0 TODO)
+
+**언제 쓰나**: "scrape", "이 페이지 데이터 가져와", "extract", "pull"
+
+### `/skillify` — 스킬화 (신규)
+
+**역할**: 가장 최근 성공한 `/scrape` 플로우를 영구 브라우저 스킬로 코드화한다. 미래의 같은 인텐트 호출은 코드화된 스크립트를 ~200ms에 실행하고 다시 페이지를 드라이브하지 않는다.
+
+**11단계 플로우**:
+1. Provenance 가드: 최근 ≤10턴 내 `/scrape` 결과 확인. cold면 거부
+2. 이름 + tier + 트리거 제안 (`AskUserQuestion`)
+3. 마지막 시도의 `$B` 호출만 추출 (실패한 selector나 채팅 fragment는 leak 안 됨)
+4. `script.ts` + `script.test.ts` + 픽스처 합성
+5. 임시 디렉토리에 스테이징
+6. `$B skill test` 실행
+7. 사용자 승인 게이트
+8. 원자적 commit (test pass + approval 둘 다 있어야)
+
+테스트 실패 또는 거부 시: `rm -rf` 임시 디렉토리. 반쪽짜리 스킬은 디스크에 절대 안 남는다.
 
 ### `/setup-browser-cookies` — 세션 매니저
 
@@ -384,6 +488,7 @@ Claude: [현재 페이지 스크린샷 캡처]
 **기능**:
 - 인터랙티브 피커 UI로 쿠키 도메인 선택
 - 별도 로그인 없이 인증된 페이지 테스트 가능
+- v0.18.3.0+: Windows 지원 (Chrome 80+ AES-256-GCM, DPAPI 키 unwrap, Chrome 127+ App-Bound Encryption fallback)
 
 ### `/setup-deploy` — 배포 설정기
 
@@ -447,6 +552,14 @@ Claude: [현재 페이지 스크린샷 캡처]
 - 오래된 학습 내용 정리 (prune)
 - 학습 내용 내보내기 (export)
 
+### `/make-pdf` — 마크다운 → PDF (신규)
+
+**역할**: 어떤 마크다운 파일이든 발행 품질 PDF로 변환한다. 적절한 1in 마진, 지능적 페이지 분할, 페이지 번호, 표지, 러닝 헤더, curly quotes와 em dash, 클릭 가능 TOC, 대각선 DRAFT 워터마크.
+
+**드래프트 아티팩트가 아니라 완성된 아티팩트.**
+
+**언제 쓰나**: "make a PDF", "export to PDF", "이 마크다운을 PDF로", "문서 생성"
+
 ### `/gstack-upgrade` — 셀프 업데이터
 
 **역할**: gstack을 최신 버전으로 업그레이드한다. 글로벌/벤더 설치를 감지하고 양쪽을 동기화하며 변경 내용을 보여준다.
@@ -454,32 +567,39 @@ Claude: [현재 페이지 스크린샷 캡처]
 **사용 예시**:
 ```
 You:    /gstack-upgrade
-Claude: ✅ v0.14.5.0 → v0.15.1.0 업그레이드 완료
-        [변경 내용 요약]
+Claude: ✅ v0.15.1.0 → v1.29.0.0 업그레이드 완료
+        [변경 내용 요약: 17개 신규 스킬, gbrain 통합, /scrape + /skillify, ...]
 ```
 
 ---
 
-## 10. 세션 관리
+## 10. 세션 관리 (Context)
 
-### `/checkpoint` — 상태 저장
+> **v1.x.x 변경**: 이전 `/checkpoint`이 Claude Code의 native `/checkpoint` rewind alias와 충돌해서 두 스킬로 분리됐다.
 
-**역할**: 작업 중인 상태를 스냅샷으로 저장하고, 나중에 정확히 그 지점부터 재개할 수 있게 한다.
+### `/context-save` — 컨텍스트 저장
+
+**역할**: 작업 중인 상태를 스냅샷으로 저장한다. git 상태, 의사결정 내역, 남은 작업을 캡처해서 어떤 미래 세션이든 한 박자도 놓치지 않고 이어 받을 수 있게 한다.
 
 **기능**:
-- git 상태, 의사결정 내역, 남은 작업을 캡처
-- 컨텍스트 압축이나 세션 종료 후에도 진행 상황 복구 가능
-- 브랜치 간 리스팅 지원 (Conductor 워크스페이스 핸드오프용)
-- 세션 시작 시 마지막 체크포인트를 자동으로 표시
+- git 상태, decisions made, remaining work 캡처
+- 컨텍스트 압축이나 세션 종료 후에도 복구 가능
+- `/context-restore`와 페어로 사용
 
-**사용 예시**:
-```
-You:    /checkpoint
-Claude: ✅ 체크포인트 저장 완료
-        브랜치: feature/billing
-        마지막 스킬: /review (성공)
-        남은 작업: 테스트 3개 추가, CI 설정 업데이트
-```
+**언제 쓰나**: "save progress", "save state", "context save", "내 작업 저장해"
+
+**이전 이름**: `/checkpoint` (Claude Code의 native rewind alias와 shadowing되던 문제로 리네임)
+
+### `/context-restore` — 컨텍스트 복구
+
+**역할**: 이전에 `/context-save`로 저장한 작업 컨텍스트를 복원한다. 기본적으로 모든 브랜치에 걸쳐 가장 최근 저장 상태를 로드해서 멈춘 지점에서 다시 시작 — Conductor 워크스페이스 핸드오프 사이에서도.
+
+**기능**:
+- 가장 최근 저장된 상태 자동 로드
+- 모든 브랜치 검색 (기본값)
+- 특정 브랜치 / 특정 시점 복구도 가능
+
+**언제 쓰나**: "resume", "restore context", "where was I", "내가 어디까지 했더라"
 
 ### `/health` — 코드 품질 대시보드
 
@@ -501,6 +621,38 @@ Claude: Code Health: 8.2/10 (↑0.3 from last check)
         ✅ Dead code: 9/10 — 1 unused export
         Fix: test/billing.test.ts:42 — assertion expects old schema
 ```
+
+---
+
+## 11. 메모리 (gbrain — v1.x.x+ 신규)
+
+gstack 메모리는 v1.x 시리즈에서 **gbrain**으로 통합됐다. CEO 플랜, 학습, 회고, 디자인 문서, 리포트 등이 검색 가능한 단일 인덱스에 들어간다. 기기 간에도 동기화된다.
+
+### `/setup-gbrain` — gbrain 설정 (신규)
+
+**역할**: 이 코딩 에이전트를 위한 gbrain을 설정한다. CLI 설치, 로컬 PGLite/Supabase brain 초기화, MCP 등록, 원격마다 신뢰 정책 캡처. 한 명령으로 zero에서 "gbrain이 돌고 이 에이전트가 호출 가능"까지.
+
+**4가지 설치 경로** (v1.27.0.0+):
+- **PGLite**: 로컬 임베디드 SQLite 기반 brain. 의존성 없음, 즉시 동작
+- **Supabase**: 클라우드 Postgres 기반 brain. 팀/기기 간 공유
+- **Switch**: 기존 brain 인스턴스 사이 전환
+- **Remote MCP** (신규): 원격 MCP URL + bearer 토큰 paste만으로 등록. 로컬 DB 불필요. Tailscale 노드, ngrok 엔드포인트, LAN 서버, 팀원 서버에서 돌아가는 brain 사용
+
+**언제 쓰나**: "setup gbrain", "connect gbrain", "start gbrain", "install gbrain"
+
+### `/sync-gbrain` — gbrain 동기화 (신규)
+
+**역할**: gbrain을 이 레포의 코드 상태와 동기화하고, CLAUDE.md의 에이전트 검색 가이드를 갱신한다. `gstack-gbrain-sync` 오케스트레이터를 상태 점검·native 코드 surface 등록·capability 검사·verdict 블록과 함께 래핑한다. 재실행 가능, 멱등.
+
+**v1.29.0.0 신규: 워크트리 인식**:
+- 각 Conductor 워크트리가 **자체 gbrain 소스**로 등록 (`gstack-code-<slug>-<pathhash8>`)
+- `.gbrain-source` 핀 파일을 워크트리 루트에 작성
+- 후속 `gbrain code-def`, `code-refs`, `code-callers` 호출이 자동으로 그 워크트리의 브랜치 상태로 라우팅
+- 같은 origin의 N개 sibling 워크트리가 동시에 인덱싱 가능 (last-sync-wins 회피)
+
+**언제 쓰나**: "sync gbrain", "refresh gbrain", "re-index this repo", "gbrain search isn't finding things"
+
+**최소 gbrain 버전**: v0.30.0+ (`sources attach` 명령 필요)
 
 ---
 

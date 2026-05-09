@@ -11,8 +11,8 @@
 - **GitHub**: [github.com/garrytan/gstack](https://github.com/garrytan/gstack)
 - **공식 사이트**: [gstacks.org](https://gstacks.org)
 - **라이선스**: MIT (무료, 영구 사용 가능)
-- **버전**: v0.15.1.0 (2026년 4월 기준)
-- **GitHub Stars**: ~45,700+
+- **버전**: v1.29.0.0 (2026년 5월 기준, 47개 스킬)
+- **호환 에이전트**: Claude Code, OpenAI Codex CLI, Gemini CLI, Cursor, OpenCode
 
 ---
 
@@ -43,11 +43,13 @@ git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack \
 ## gstack
 Use /browse from gstack for all web browsing. Never use mcp__claude-in-chrome__* tools.
 Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-design-review,
-/design-consultation, /design-shotgun, /design-html, /review, /ship, /land-and-deploy,
-/canary, /benchmark, /browse, /connect-chrome, /qa, /qa-only, /design-review,
-/setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release, /codex,
-/cso, /autoplan, /careful, /freeze, /guard, /unfreeze, /learn, /gstack-upgrade,
-/checkpoint, /health.
+/plan-devex-review, /plan-tune, /design-consultation, /design-shotgun, /design-html,
+/review, /ship, /land-and-deploy, /canary, /benchmark, /benchmark-models, /browse,
+/open-gstack-browser, /pair-agent, /qa, /qa-only, /design-review, /devex-review,
+/setup-browser-cookies, /setup-deploy, /retro, /investigate, /document-release,
+/landing-report, /codex, /cso, /autoplan, /careful, /freeze, /guard, /unfreeze,
+/learn, /gstack-upgrade, /context-save, /context-restore, /health, /scrape, /skillify,
+/setup-gbrain, /sync-gbrain, /make-pdf.
 ```
 
 ### Step 2: 팀 프로젝트에 추가 (선택)
@@ -87,8 +89,8 @@ cd ~/gstack && ./setup --host auto
 | 문서 | 내용 |
 |---|---|
 | **[스프린트 워크플로우](docs/workflow.md)** | gstack 스프린트 프로세스, 전체 워크플로우 예시, 병렬 스프린트 |
-| **[명령어 레퍼런스](docs/commands.md)** | 33개 전체 명령어의 상세 설명과 사용 예시 |
-| **[릴리스 노트](docs/release-notes.md)** | v0.14.0.0 ~ v0.15.1.0 버전별 변경 이력 |
+| **[명령어 레퍼런스](docs/commands.md)** | 47개 전체 명령어의 상세 설명과 사용 예시 |
+| **[릴리스 노트](docs/release-notes.md)** | v0.14.0.0 ~ v1.29.0.0 메이저 버전 변경 이력 |
 | **[트러블슈팅 & FAQ](docs/troubleshooting.md)** | 문제 해결, 프라이버시, 텔레메트리, 팁 |
 
 ---
@@ -101,36 +103,48 @@ cd ~/gstack && ./setup --host auto
 | | `/plan-ceo-review` | CEO / 파운더 | 디자인 문서를 읽고 10개 섹션으로 제품 리뷰, 4가지 스코프 모드 |
 | | `/plan-eng-review` | 엔지니어링 매니저 | 아키텍처·데이터 플로우를 ASCII 다이어그램으로 시각화, 테스트 매트릭스 확정 |
 | | `/plan-design-review` | 시니어 디자이너 | 각 디자인 차원을 0~10 평가, AI Slop 탐지, 인터랙티브 리뷰 |
+| | `/plan-devex-review` | DX 시니어 (신규) | 개발자 경험 플랜 리뷰, 경쟁 벤치마크, 마법 같은 순간 설계 |
+| | `/plan-tune` | 질문 튜닝 (신규) | gstack 질문 민감도 자기 튜닝, 8개 빌더 archetypes 추적 |
 | | `/design-consultation` | 디자인 파트너 | 경쟁 리서치 후 디자인 시스템 구축, DESIGN.md 자동 생성 |
-| | `/autoplan` | 자동 리뷰 파이프라인 | CEO → 디자인 → 엔지니어링 리뷰를 한 명령으로 자동 수행 |
+| | `/autoplan` | 자동 리뷰 파이프라인 | CEO → 디자인 → 엔지니어링 → DX 리뷰를 한 명령으로 자동 수행 |
 | **디자인** | `/design-shotgun` | 디자인 탐색 | 여러 AI 디자인 변형을 생성하고 비교 보드에서 피드백 수집 |
 | | `/design-html` | 디자인 → 코드 | 플랜, 설명, PNG 등 어떤 출발점에서든 프로덕션 HTML/CSS 생성 |
 | **리뷰** | `/review` | 스태프 엔지니어 | 7종 병렬 전문 리뷰어로 프로덕션 버그 탐지, PR 품질 점수 산출 |
 | | `/investigate` | 디버거 | 체계적 근본 원인 디버깅, 3회 실패 시 자동 중단 |
 | | `/codex` | 세컨드 오피니언 | OpenAI Codex CLI를 통한 독립적 코드 리뷰, 3가지 모드 |
+| | `/devex-review` | 라이브 DX 감사 (신규) | 실제로 docs를 탐색하고 onboarding 시간 측정, DX 스코어카드 |
 | **테스트** | `/qa` | QA 리드 | 실제 브라우저로 테스트 → 버그 수정 → 회귀 테스트 → 재검증 |
 | | `/qa-only` | QA 리포터 | `/qa`와 동일하되 코드 수정 없이 버그 리포트만 생성 |
 | | `/design-review` | 디자이너 + 코더 | 디자인 감사 후 UI/UX 문제를 직접 코드로 수정, 전/후 스크린샷 |
 | | `/benchmark` | 퍼포먼스 엔지니어 | Core Web Vitals 측정, PR마다 전/후 성능 비교 |
+| | `/benchmark-models` | 모델 벤치마크 (신규) | Claude·GPT·Gemini를 동일 프롬프트로 비교, 지연·토큰·비용 측정 |
 | **배포** | `/ship` | 릴리스 엔지니어 | 테스트 → 스코프 드리프트 감지 → 푸시 → PR 생성 (멱등성 보장) |
 | | `/land-and-deploy` | 릴리스 엔지니어 | PR 머지 → CI 대기 → 배포 → 프로덕션 헬스 체크 |
 | | `/canary` | SRE | 배포 후 콘솔 에러·성능 회귀·페이지 실패 실시간 감시 |
 | | `/document-release` | 테크니컬 라이터 | 배포 후 프로젝트 문서를 코드 변경에 맞게 자동 업데이트 |
+| | `/landing-report` | 랜딩 리포트 (신규) | 워크스페이스 인식 PR 큐 대시보드, 다음 VERSION 슬롯 표시 |
 | **회고** | `/retro` | 엔지니어링 매니저 | 기여자별 분석, 배포 기록 추적, 글로벌 회고 지원 |
-| **브라우저** | `/browse` | QA 엔지니어 | 영속적 Chromium 세션, 명령당 ~100ms, 접근성 트리 참조 |
-| | `/connect-chrome` | Chrome 연결 | CSS Inspector, 탭별 에이전트, 라이브 스타일 편집 지원 |
-| | `/setup-browser-cookies` | 세션 매니저 | 실제 브라우저 쿠키를 헤드리스 세션으로 임포트 |
+| **브라우저** | `/browse` | QA 엔지니어 | 영속적 Chromium 세션, 명령당 ~100ms, SOCKS5 프록시 + Linux Xvfb |
+| | `/open-gstack-browser` | GStack Browser (신규) | 사이드바 확장 내장 Chromium, 실시간 활동 피드 + 안티봇 stealth |
+| | `/pair-agent` | 에이전트 페어링 (신규) | 다른 AI 에이전트(Codex/Cursor 등)에 브라우저 공유, 격리된 탭 권한 |
+| | `/scrape` | 웹 스크레이핑 (신규) | 웹 페이지 데이터 추출. 첫 호출 ~30초, 두 번째 ~200ms |
+| | `/skillify` | 스킬화 (신규) | 성공한 `/scrape` 플로우를 영구 브라우저 스킬로 코드화 |
+| | `/setup-browser-cookies` | 세션 매니저 | 실제 브라우저 쿠키를 헤드리스 세션으로 임포트 (Windows 지원) |
 | | `/setup-deploy` | 배포 설정기 | `/land-and-deploy`를 위한 일회성 플랫폼·URL·배포 명령 설정 |
 | **보안** | `/cso` | 최고 보안 책임자 | OWASP Top 10 + STRIDE 위협 모델링, 17가지 오탐 제외 규칙 |
 | | `/careful` | 안전 가드레일 | `rm -rf`, `DROP TABLE` 등 파괴적 명령 실행 전 경고 |
 | | `/freeze` | 편집 잠금 | 파일 편집을 특정 디렉토리로 제한 |
 | | `/guard` | 풀 세이프티 | `/careful` + `/freeze` 동시 활성화, 최대 안전 모드 |
 | | `/unfreeze` | 잠금 해제 | `/freeze` 편집 제한 해제 |
-| **세션** | `/checkpoint` | 상태 저장 | 작업 상태 스냅샷 저장/복구, 브랜치 간 핸드오프 지원 |
+| **세션** | `/context-save` | 컨텍스트 저장 | 작업 상태 스냅샷 저장. (이전 `/checkpoint`에서 분리) |
+| | `/context-restore` | 컨텍스트 복구 | 저장된 상태 복원. (이전 `/checkpoint resume`에서 분리) |
 | | `/health` | 코드 품질 | tsc·biome·knip·테스트 래핑, 복합 0~10 점수, 추세 추적 |
+| **메모리** | `/setup-gbrain` | gbrain 설정 (신규) | PGLite/Supabase/Switch/Remote MCP 4가지 경로로 검색 가능한 메모리 |
+| | `/sync-gbrain` | gbrain 동기화 (신규) | 워크트리 인식 코드 인덱스, Conductor 병렬 브랜치마다 격리된 검색 |
 | **유틸** | `/learn` | 학습 관리 | 프로젝트별 학습 내용 리뷰·검색·정리·내보내기 |
+| | `/make-pdf` | PDF 변환 (신규) | 마크다운 → 발행 품질 PDF (1in 마진, 페이지 번호, 클릭 가능 TOC) |
 | | `/gstack-upgrade` | 셀프 업데이터 | 최신 버전으로 업그레이드, 글로벌/벤더 설치 자동 동기화 |
 
 ---
 
-*gstack v0.15.1.0 기준 · 마지막 업데이트: 2026년 4월 1일*
+*gstack v1.29.0.0 기준 · 마지막 업데이트: 2026년 5월 8일*
